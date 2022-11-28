@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Insurance.Api.Controllers;
+using Insurance.Api.ProductApiModel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -28,6 +32,25 @@ namespace Insurance.Tests
                       {
                           ProductId = 1,
                       };
+            var sut = new HomeController();
+
+            var result = sut.CalculateInsurance(dto);
+
+            Assert.Equal(
+                expected: expectedInsuranceValue,
+                actual: result.InsuranceValue
+            );
+        }
+
+        [Fact]
+        public void Task1_CalculateInsurance_GivenLaptopUnder500_InsurancePriceShouldBe500()
+        {
+            const float expectedInsuranceValue = 500;
+
+            var dto = new HomeController.InsuranceDto
+            {
+                ProductId = 2,
+            };
             var sut = new HomeController();
 
             var result = sut.CalculateInsurance(dto);
@@ -71,13 +94,7 @@ namespace Insurance.Tests
                         context =>
                         {
                             int productId = int.Parse((string) context.Request.RouteValues["id"]);
-                            var product = new
-                                          {
-                                              id = productId,
-                                              name = "Test Product",
-                                              productTypeId = 1,
-                                              salesPrice = 750
-                                          };
+                            var product = products.FirstOrDefault(p => p.Id == productId);
                             return context.Response.WriteAsync(JsonConvert.SerializeObject(product));
                         }
                     );
@@ -92,6 +109,12 @@ namespace Insurance.Tests
                                                        id = 1,
                                                        name = "Test type",
                                                        canBeInsured = true
+                                                   },
+                                                   new
+                                                   {
+                                                       id = 2,
+                                                       name = "Laptop",
+                                                       canBeInsured = true
                                                    }
                                                };
                             return context.Response.WriteAsync(JsonConvert.SerializeObject(productTypes));
@@ -100,5 +123,22 @@ namespace Insurance.Tests
                 }
             );
         }
+
+        private List<Product> products = new List<Product>() {
+                                            new Product()
+                                                {
+                                                    Id = 1,
+                                                    Name = "Test Product",
+                                                    ProductTypeId = 1,
+                                                    SalesPrice = 750
+                                                },
+                                            new Product()
+                                                {
+                                                    Id = 2,
+                                                    Name = "Test Laptop",
+                                                    ProductTypeId = 2,
+                                                    SalesPrice = 450
+                                                }
+                                            };
     }
 }
