@@ -2,11 +2,19 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Insurance.Api.Controllers
 {
     public class HomeController: Controller
     {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
         [HttpPost]
         [Route("api/insurance/product")]
         public InsuranceDto CalculateInsurance([FromBody] InsuranceDto toInsure)
@@ -19,7 +27,14 @@ namespace Insurance.Api.Controllers
             float insurance = 0f;
 
             if (toInsure.SalesPrice < 500)
-                toInsure.InsuranceValue = 0;
+                if (toInsure.ProductTypeName == "Laptops")
+                {
+                    toInsure.InsuranceValue = 500;
+                }
+                else
+                {
+                    toInsure.InsuranceValue = 0;
+                }
             else
             {
                 if (toInsure.SalesPrice > 500 && toInsure.SalesPrice < 2000)

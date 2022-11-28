@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,10 +19,16 @@ namespace Insurance.Tests
     public class InsuranceTests: IClassFixture<ControllerTestFixture>
     {
         private readonly ControllerTestFixture _fixture;
+        private readonly ILoggerFactory _loggerFactory;
 
         public InsuranceTests(ControllerTestFixture fixture)
         {
             _fixture = fixture;
+            var serviceProvider = new ServiceCollection()
+                .AddLogging()
+                .BuildServiceProvider();
+
+            _loggerFactory = serviceProvider.GetService<ILoggerFactory>();
         }
 
         [Fact]
@@ -32,7 +40,8 @@ namespace Insurance.Tests
                       {
                           ProductId = 1,
                       };
-            var sut = new HomeController();
+            var logger = _loggerFactory.CreateLogger<HomeController>();
+            var sut = new HomeController(logger);
 
             var result = sut.CalculateInsurance(dto);
 
@@ -51,7 +60,8 @@ namespace Insurance.Tests
             {
                 ProductId = 2,
             };
-            var sut = new HomeController();
+            var logger = _loggerFactory.CreateLogger<HomeController>();
+            var sut = new HomeController(logger);
 
             var result = sut.CalculateInsurance(dto);
 
@@ -113,7 +123,7 @@ namespace Insurance.Tests
                                                    new
                                                    {
                                                        id = 2,
-                                                       name = "Laptop",
+                                                       name = "Laptops",
                                                        canBeInsured = true
                                                    }
                                                };
